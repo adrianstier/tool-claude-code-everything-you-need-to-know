@@ -377,132 +377,161 @@ Hooks execute **arbitrary shell commands** on your system automatically and can 
 
 ### Model Context Protocol (MCP)
 
+#### What is MCP?
+
+Think of the **Model Context Protocol (MCP)** as a **"USB-C port" for AI**. It is an open standard that enables Claude Code to connect securely to your local files, databases, and external services. Instead of pasting code snippets or downloading logs manually, MCP allows Claude to reach out and interact with your tools directly from the terminal.
+
+#### Why You Should Use It
+
+- **Real-Time Data:** Query your production database or check live GitHub issues without leaving your coding environment.
+- **Automation:** Have Claude write code, run tests, and deploy changes in a single loop.
+- **Context Persistence:** Use memory servers to help Claude remember architectural decisions across different sessions.
+
 > **📚 Comprehensive MCP Documentation**
 > For detailed setup, configuration, and usage of MCP servers:
-> - **[MCP Servers Documentation](./mcp-servers/)** - Complete guide with prerequisites, installation, and individual server documentation (Serena, Sequential Thinking, Memory, Playwright)
-> - **[Troubleshooting Guide](./mcp-servers/README.md#troubleshooting)** - Common issues and solutions
+> - **[MCP Servers Documentation](./mcp-servers/)** — Complete guide with prerequisites, installation, and individual server documentation (Serena, Sequential Thinking, Memory, Playwright)
+> - **[Troubleshooting Guide](./mcp-servers/README.md#troubleshooting)** — Common issues and solutions
+
+---
+
+#### The Core Problem: Fragmentation and Inefficiency
 
 ![Why is building AI Agents so chaotic?](Images/MCP/mcp-1.png)
 
-#### The Core Problem: Fragmentation and Inefficiency
-- AI agents are becoming smarter but face a massive hidden communication problem that's holding them back from their full potential.
-- Building AI agents is chaotic because it's ridiculously hard to get them to talk to the tools and data they need to be useful.
-- The current system is described as "a complete and utter mess," referred to by Anthropic as **"the land before MCP"**.
-- **Total fragmentation exists**, with teams, even inside the same company, reinventing the wheel by building custom one-off connections for every single tool and data source.
-- This chaos is named the **N by M problem**:
+- AI agents are becoming smarter but face a massive hidden communication problem holding them back from their full potential.
+- Building AI agents is chaotic because it's ridiculously hard to get them to talk to the tools and data they need.
+- Anthropic calls this **"the land before MCP"** — total fragmentation where teams, even inside the same company, reinvent the wheel by building custom one-off connections for every tool and data source.
+- This chaos is the **N × M problem**:
 	![Without MCP vs With MCP](Images/MCP/mcp-2.png)
-	- If you have `n` AI applications and `m` different tools, the old way forces you to build n * m unique integrations.
-	- This leads to an **exponential explosion of work that is completely unsustainable**.
-	 - This fragmentation everywhere, happening between different teams inside their own company, creating massive inefficiency and wasted effort.
-	- The desired outcome is an **N + M world**, where you just build one connection for each app and one for each tool, and they all work together.
-
-> **Installing Playwright MCP for Claude Code (CLI)**
-Claude Code uses a different installation method than Claude Desktop, with MCP servers being added per-directory and persisting in a ~/.claude.json configuration file.
-
-  **Quick Installation**
-
-The simplest method for Claude Code CLI:
-```bash
-# Navigate to your project directory
-cd /path/to/your/project
-
-# Add Playwright MCP to Claude Code
-claude mcp add playwright npx '@playwright/mcp@latest'
-```
-
-**ExecuteAutomation Version (More Features)**
-
-```bash
-claude mcp add playwright npx '@executeautomation/playwright-mcp-server'
-```
-
-**Usage After Installation**
-```bash
-# Start Claude Code in your project directory
-claude
-
-# Now you can use Playwright through natural language
-"Use playwright mcp to open a browser to example.com"
-"Take a screenshot of the current page"
-"Click on the login button and fill the form"
-```
-
-
-**Verification Commands**
-
-```bash
-# Check available MCP tools
-/mcp
-
-# Navigate to playwright section to see all tools
-# Available tools include: browser_navigate, browser_click, 
-# browser_screenshot, browser_type, etc.
-```
-
-
-**Directory-Specific Persistence**
-The claude mcp add command will persist but will only affect the directory in which you run it, with configuration stored in ~/.claude.json under a "projects" key.
-
-```bash
-# Each directory can have different MCP configurations
-cd ~/project-a
-claude mcp add playwright npx '@playwright/mcp@latest'
-
-cd ~/project-b  
-claude mcp add playwright npx '@executeautomation/playwright-mcp-server'
-```
+	- If you have `n` AI applications and `m` different tools, the old way forces you to build `n × m` unique integrations — an **exponential explosion of work that is completely unsustainable**.
+	- The desired outcome is an **N + M world**, where you build one connection for each app and one for each tool, and they all work together.
 
 #### The Solution: Model Context Protocol
 
-- **MCP is the proposed solution** to this chaos.
-- It functions as a **universal translator for AI**.
+- **MCP is the proposed solution** to this chaos — a **universal translator for AI**.
 - **MCP is an open standard** designed to let any AI application speak fluently with any tool or data source.
 - It's the next logical step in a pattern seen before in tech:
     ![The Evolution of Protocols](Images/MCP/mcp-3.png)
     - **Web APIs** standardized how web apps talk to servers.
     - The **Language Server Protocol (LSP)** did the same for code editors and their tools.
     - **MCP is that same evolutionary leap for AI**, creating a common language for how agents talk to the rest of the world.
-- The core mission of MCP is to be an **open standard layer that flattens the N by M problem**.
-- It is explicitly **not a proprietary thing** but designed to be a public good for the whole ecosystem.
-- The goal is to make building with AI faster, more efficient, and more collaborative.
+- The core mission: an **open standard layer that flattens the N × M problem** — not a proprietary lock-in, but a public good for the whole ecosystem.
+
+---
+
+#### Top 8 Essential MCP Servers for Developers
+
+Based on community usage and utility, these are the highest-leverage connections you can add to Claude Code:
+
+| Server | Best For | Why It's Useful |
+| :--- | :--- | :--- |
+| **GitHub** | Workflow Automation | Search repo history, manage Pull Requests, read issues directly. "Review PR #42" or "check recent commits for bugs". |
+| **PostgreSQL** | Data Analysis | Natural language querying of your DB. "Show me the schema for the `users` table" or "check the last 5 transactions" without writing SQL. |
+| **Puppeteer / Playwright** | Browser Automation | Gives Claude a web browser — take screenshots to verify UI changes, scrape docs, or run end-to-end tests. |
+| **Brave Search** | Up-to-Date Info | Overcomes the training data cutoff. Search the live web for the latest library documentation or error solutions. |
+| **Sentry / Honeycomb** | Debugging | Connects to your observability stack. Read production stack traces and correlate them with recent code changes. |
+| **Filesystem** | Local Access | (Often built-in) Grants controlled access to read/write files in specific directories — essential for local development. |
+| **Sequential Thinking** | Complex Logic | Forces Claude to break down massive architectural tasks into structured, step-by-step reasoning blocks before executing code. |
+| **Memory Bank** | Long-Term Context | Gives Claude a "persistent brain" to remember project rules, user preferences, and past decisions across sessions. |
+
+---
+
+#### How to Install MCP Servers
+
+**General Syntax**
+```bash
+claude mcp add <server-name> --transport <type> <url-or-command>
+```
+
+**Quick Start Examples**
+
+```bash
+# Add GitHub (HTTP transport)
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+
+# Add Postgres (local, stdio transport)
+claude mcp add --transport stdio postgres -- npx -y @modelcontextprotocol/server-postgres "postgresql://user:password@localhost:5432/db"
+
+# Add Brave Search
+claude mcp add --transport stdio brave-search -- npx -y @modelcontextprotocol/server-brave-search
+
+# Add Playwright
+claude mcp add playwright -s user -- npx -y @playwright/mcp@latest
+
+# Add Sequential Thinking
+claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
+
+# Add Memory
+claude mcp add memory -s user -- npx -y @modelcontextprotocol/server-memory
+```
+
+**Manage Your Servers**
+
+Once inside Claude Code, type `/mcp` to view status, reconnect, or manage authentication for your active servers.
+
+**Installation Scopes**
+
+| Scope | Flag | Behavior |
+| :--- | :--- | :--- |
+| **Global** | `-s user` | Available across all projects (recommended for everyday use) |
+| **Local** | `-s local` | Project-specific, isolated from other projects |
+
+```bash
+# Global (recommended)
+claude mcp add playwright -s user -- npx -y @playwright/mcp@latest
+
+# Local (project-specific)
+claude mcp add playwright -s local -- npx -y @playwright/mcp@latest
+```
+
+**Verify Installation**
+```bash
+claude mcp list
+```
+
+Expected output:
+```
+Checking MCP server health...
+sequential-thinking: ✓ Connected
+memory: ✓ Connected
+playwright: ✓ Connected
+```
+
+---
 
 #### How MCP Works: Three Core Pillars (Interfaces)
-  ![MCP Deep Dive](Images/MCP/mcp-4.png)
-  MCP is built on three core pillars designed to create a clean separation of duties and make it crystal clear who's in control of any given interaction:
-1. **Tools**
-	- **Controlled by the AI model** so it can take action.
+
+![MCP Deep Dive](Images/MCP/mcp-4.png)
+
+MCP is built on three core pillars designed to create a clean separation of duties and make it clear who controls each interaction:
+
+1. **Tools** — Controlled by the AI model
 	- Developers expose capabilities like searching a database or writing to a file.
 	- The **model decides when and how to use those tools** to accomplish its goal.
 
-2. Resources
-	- **Controlled by the application**.
+2. **Resources** — Controlled by the application
 	- Allows developers to feed the AI rich, structured information beyond plain text.
-	- Examples include attaching files, surfacing error logs, or sending complex JSON objects.
+	- Examples: attaching files, surfacing error logs, sending complex JSON objects.
 	- The application developer decides what important context the AI needs.
 
-3. Prompts
-	- **Controlled by the user**.
+3. **Prompts** — Controlled by the user
 	- Function like slash commands in apps like Slack or Discord.
 	- A simple user shortcut (e.g., `/summarize_this_pull_request`) kicks off complex multi-step actions.
 	- This puts **direct powerful control** back in the user's hands.
 
+---
+
 #### The Future Vision: The MCP Registry and Self-Evolving Agents
 
 ![Agent Learning on the Fly](Images/MCP/mcp-5.png)
-- **MCP lays the foundation for the next generation of AI**, enabling agents that can learn, grow, and evolve on their own.
-- The key to this future is the **MCP Registry**.
-- **The MCP Registry** is imagined as a global centralized directory, like an app store for AI tools and capabilities.
-- Its function allows an AI agent to:
-    - **Search for** new tools **Verify** their authenticity
+
+- **MCP lays the foundation for the next generation of AI** — agents that can learn, grow, and evolve on their own.
+- The key to this future is the **MCP Registry**: a global centralized directory, like an app store for AI tools and capabilities.
+- The registry allows an AI agent to:
+    - **Search for** new tools and **verify** their authenticity
     - **Dynamically connect** to brand new tools it's never encountered
-    - **Real-world example**: 
-        - An agent needs to check logs in Grafana but has no idea what Grafana is.
-        - Instead of failing, it pings the MCP registry, searches for a verified Grafana server, finds the official one, and instantly connects.
-        - The agent uses these new tools to read the log and complete the task.
-        - This demonstrates the agent **literally teaching itself a new skill on the fly**.
-- The ultimate vision: agents that are **no longer limited to their original tools**.
-- They will **proactively discover and integrate new capabilities** by themselves.
-- The agent will give itself context and evolve to meet whatever new challenge comes its way.
+    - **Real-world example**: An agent needs to check logs in Grafana but has never used it. Instead of failing, it pings the MCP registry, finds the verified Grafana server, connects, reads the logs, and completes the task — **literally teaching itself a new skill on the fly**.
+- The ultimate vision: agents that are **no longer limited to their original tools**, proactively discovering and integrating new capabilities by themselves.
 
 ### SDLC
 ![Software Software Development Life Cycle](Images/sdlc.png)
